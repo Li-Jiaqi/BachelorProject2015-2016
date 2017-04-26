@@ -1,0 +1,6 @@
+load('S_d_MFCC.mat')
+load('S_t_MFCC.mat')
+load('DepressionLabels_training.mat')
+load('DepressionLabels_dev.mat')
+[yp, error,MAE,RMSE]=pls_calculate(mean(S_t_MFCC,2),DepressionLabels_training,mean(S_d_MFCC,2),DepressionLabels_dev)
+% [yp, error,MAE,RMSE]=pls_calculate(S_t_MFCC,DepressionLabels_training,S_d_MFCC,DepressionLabels_dev)

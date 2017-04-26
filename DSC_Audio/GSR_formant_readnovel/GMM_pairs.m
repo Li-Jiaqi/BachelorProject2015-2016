@@ -1,0 +1,56 @@
+function [GMM_low,GMM_high,total_features] =...
+    GMM_pairs(threshold,mylabelfile,fea_path)
+%%%   Gaussian_pairs() return two Gaussians,one for low level, 
+%         another for high level,with the label compared to the threshold 
+%%%     Input:
+%          threshold: threshold to classify two levels
+%          mylabelfile: a 50*3 matrix, with a row represent [subject part label]
+%                     just like "203 1 3" 
+%          fea_path: path of features ".mat" files
+%%%     Output:
+%          means and covariance matrixs of two Gaussian
+%% Example:  Gaussian_pairs(5,train_label_3,...
+%          'E:\AVECdata\Training_AudioFeatures\Training\mfcc_delta_mat_train\' )
+
+%% find whose label < threshold
+    low_index=find( mylabelfile(:,3)<threshold );
+    % nb of low level subjects
+    nblow=size(low_index,1); 
+    
+    %% find whose label >= threshold
+    high_index=find( mylabelfile(:,3)>=threshold );
+    %nb of high level subjects
+    nbhigh=size(high_index,1); 
+    
+%%  
+    features_low=[];  % total feature vector  of low level
+    ntotal_low=0;   % total number of feature vector  of low level
+    for i=1:nblow
+        subj=mylabelfile(low_index(i),1);
+        part=mylabelfile(low_index(i),2);
+        
+        dataname=['htk_' num2str(subj) '_' num2str(part) '_cut_audio_readnovel_fmt_corr_pca'];
+        load([fea_path dataname '.mat']);
+        eval(['ntotal_low=ntotal_low+size(' dataname ',1);']);
+        eval(['features_low=[features_low;' dataname '];']);
+    end
+    %%  creat GMM
+%     option=optimset('Start','plus','Replicates',1,'CovarianceType','full','RegularizationValue',0.2);
+    GMM_low=fitgmdist(features_low,2,'Start','plus','Replicates',1,'CovarianceType','full','RegularizationValue',0.2);
+%%    
+    features_high=[];  %  total feature vector of high level
+    ntotal_high=0;     %  total number of feature vector of high level
+    for i=1:nbhigh
+        subj=mylabelfile(high_index(i),1);
+        part=mylabelfile(high_index(i),2);
+        
+        dataname=['htk_' num2str(subj) '_' num2str(part) '_cut_audio_readnovel_fmt_corr_pca'];
+        load([fea_path dataname '.mat']);
+        eval(['ntotal_high=ntotal_high+size(' dataname ',1);']);
+        eval(['features_high=[features_high;' dataname '];']);
+    end
+    GMM_high=fitgmdist(features_high,2,'Start','plus','Replicates',1,'CovarianceType','full','RegularizationValue',0.2);
+     total_features=[features_high;features_low];
+    
+end
+
